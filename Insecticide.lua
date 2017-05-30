@@ -76,7 +76,14 @@ local function hook(event, line)
   end
 end
 
-local function connectToServer()
+---
+-- Tries to require the lua-socket module and connect to a server with the
+-- given address and port number.
+-- @tparam string address The ip address to connect to.
+-- @tparam number port    The port number to connect to.
+-- @treturn client        The TCP client object connected to the server.
+--
+local function connectToServer(address, port)
   local ok, socket = pcall(require, 'socket')
 
   -- Fail if socket can't be found on the user's system.
@@ -84,20 +91,20 @@ local function connectToServer()
     error('Required socket module not found. ' .. socket)
   end
 
-  -- Try connecting to the server and transform the master object into a client
-  -- object implicitly.
-  print('Trying to connect to ' .. config.address .. ':' .. config.port .. '...')
+  print('Trying to connect to ' .. address .. ':' .. port .. '...')
 
-  while not client do
+  local tclient
+  while not tclient do
     local err
-    client, err = socket.connect(config.address, config.port)
-    if not client then
+    tclient, err = socket.connect(address, port)
+    if not tclient then
       print('Error: ', err)
-      client = nil
+      tclient = nil
     end
   end
 
   print('Connected! Starting to send beeps and boops...')
+  return tclient
 end
 
 -- ------------------------------------------------
@@ -105,7 +112,7 @@ end
 -- ------------------------------------------------
 
 function Insecticide.activate()
-  connectToServer()
+  client = connectToServer(config.address, config.port)
 end
 
 -- This is just for testing... we need to hook into the program to debug later on.
