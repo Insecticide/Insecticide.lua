@@ -17,7 +17,7 @@
 --      B@ - boolean
 --
 --    Example
---      Lua:    bar = { hello = "world" }
+--      Lua:    bar = { hello = 'world' }
 --      Cereal: G`S@bar=T@foo`foo`S@hello=S@world`
 --
 -- @module Cereal
@@ -168,9 +168,9 @@ local function getArguments(level)
     local name, value = debug.getlocal(level, -i) -- negative indexes
 
     -- 'not name' should be enough, but LuaJIT 2.0.0 incorrectly reports '(*temporary)' names here
-    if not name or name ~= "(*vararg)" then break end
+    if not name or name ~= '(*vararg)' then break end
 
-    arguments[name:gsub("%)$"," "..i..")")] = value
+    arguments[name:gsub('%)$',' '..i..')')] = value
     i = i + 1
   end
 
@@ -197,7 +197,7 @@ end
 -- ------------------------------------------------
 -- Public Functions
 -- ------------------------------------------------
-function Cereal.serialize( t, name, state )
+function Cereal.serialize(t, name, state)
   if type(name) == 'table' then
     state = name
   end
@@ -219,7 +219,7 @@ function Cereal.serialize( t, name, state )
   return serialized
 end
 
-function Cereal.serializeScope( level, state )
+function Cereal.serializeScope(level, state)
   local scope = {
     -- [SCOPE_IDENTIFIERS.GLOBAL  ] = _G, -- Don't serialize Global variables (yet?)
     [SCOPE_IDENTIFIERS.LOCAL   ] = getLocals(level),
