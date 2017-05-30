@@ -39,6 +39,14 @@ local DEBUG_EVENTS = {
   COUNT     = 'count'
 }
 
+-- These are the commands the client can receive from the server.
+local DEBUG_COMMANDS = {
+  INIT = 'INIT',
+  STEPIN = 'STEPIN',
+  GETSTACK = 'GETSTACK',
+  GETVARIABLES = 'GETVARIABLES'
+}
+
 -- ------------------------------------------------
 -- Local Variables
 -- ------------------------------------------------
@@ -50,7 +58,7 @@ local client
 -- ------------------------------------------------
 
 local function send(txt)
-  local bytes, err = client:send(txt .. '\n') --Without the newline the message never ends
+  local bytes, err = client:send(txt) --Without the newline the message never ends
 
   if not bytes and err == 'closed' then
     print('Closing connection')
@@ -63,13 +71,41 @@ local function send(txt)
 end
 
 ---
+-- This function will wait for a message from the server with instructions on
+-- how to proceed.
+--
+local function receive()
+  local msg, err
+  while true do
+    msg, err = client:receive()
+    print(msg, err)
+
+    -- TODO Error handling.
+    if msg then
+      break
+    end
+  end
+  return msg
+end
+
+---
 -- @tparam string event The type of event the hook receives ('call', 'tail call', 'return', 'line', 'count').
 -- @tparam number line  The new line number for line events.
 --
 local function hook(event, line)
+  local msg = receive()
+  print('Instructions received: ' .. msg)
+
+  if msg == DEBUG_COMMANDS.INIT then
+    local path = debug.getinfo(1, "S").source
+    path = Cereal.sanitizeString(path)
+
+    send(string.format('OK,%s,%s\n', config.id, path))
+  end
+
   if event == DEBUG_EVENTS.CALL then
     local ser = Cereal.serializeScope(4)
-    send(ser)
+    send(ser .. '\n')
   elseif event == DEBUG_EVENTS.TAIL_CALL then
     print(event)
   elseif event == DEBUG_EVENTS.RETURN    then

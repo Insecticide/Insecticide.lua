@@ -7,8 +7,6 @@ local client
 
 function love.load()
   server = socket.bind(address, port)
-
-  love.window.close()
 end
 
 function love.update()
@@ -18,7 +16,7 @@ function love.update()
 
     local err
     client, err = server:accept()
-
+    client:settimeout(0)
     print(client, err)
   end
 
@@ -32,4 +30,8 @@ function love.update()
       print(msg, err)
     end
   end
+end
+
+function love.keypressed()
+  client:send('INIT\n')
 end
