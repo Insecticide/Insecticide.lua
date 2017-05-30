@@ -39,13 +39,6 @@ local DEBUG_EVENTS = {
   COUNT     = 'count'
 }
 
--- 'n' selects fields name and namewhat
--- 'f' selects field func
--- 'S' selects fields source, short_src, what, and linedefined
--- 'l' selects field currentline
--- 'u' selects field nup
-local GET_INFO_MASK = 'S'
-
 -- ------------------------------------------------
 -- Local Variables
 -- ------------------------------------------------
@@ -56,15 +49,27 @@ local client
 -- Local Functions
 -- ------------------------------------------------
 
+local function send(txt)
+  local bytes, err = client:send(txt .. '\n') --Without the newline the message never ends
+
+  if not bytes and err == 'closed' then
+    print('Closing connection')
+    client = nil
+  elseif bytes then
+    print('Message sent: ' .. bytes ..'bytes.')
+  else
+    print('Error sending message: ' .. err)
+  end
+end
+
 ---
 -- @tparam string event The type of event the hook receives ('call', 'tail call', 'return', 'line', 'count').
 -- @tparam number line  The new line number for line events.
 --
 local function hook(event, line)
-  if     event == DEBUG_EVENTS.CALL      then
-    for i, v in pairs(debug.getinfo(2, GET_INFO_MASK)) do
-      print(i, v)
-    end
+  if event == DEBUG_EVENTS.CALL then
+    local ser = Cereal.serializeScope(4)
+    send(ser)
   elseif event == DEBUG_EVENTS.TAIL_CALL then
     print(event)
   elseif event == DEBUG_EVENTS.RETURN    then
@@ -117,20 +122,12 @@ end
 
 -- This is just for testing... we need to hook into the program to debug later on.
 function Insecticide.start()
-  if client then
-    local ser = Cereal.serializeScope(4)
-
-    local bytes, err = client:send(ser .. '\n') --Without the newline the message never ends
-
-    if not bytes and err == 'closed' then
-      print('Closing connection')
-      client = nil
-    elseif bytes then
-      print('Message sent: ' .. bytes ..'bytes.')
-    else
-      print('Error sending message: ' .. err)
-    end
+  if not client then
+    print('No active client found. Aborting...')
+    return
   end
+
+  debug.sethook(hook, DEBUG_HOOK_MASK)
 end
 
 return Insecticide
