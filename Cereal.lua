@@ -62,10 +62,6 @@ local function asciicode(c)
   return ('$%.2X'):format(c:byte())
 end
 
-local function sanitizeString(str)
-    return str:gsub('[@`=,%$]', asciicode):gsub('[^\32-\126]', asciicode)
-end
-
 local getmeta = debug.getmetatable or getmetatable
 local setmeta = debug.setmetatable or setmetatable
 
@@ -89,7 +85,7 @@ local function serializeValue(value, state)
       identifier = state.ids[value]
     else
       --Use hash as identifier
-      identifier = sanitizeString(superToString(value))
+      identifier = Cereal.sanitizeString(superToString(value))
       state.ids[value] = identifier
     end
 
@@ -100,8 +96,8 @@ local function serializeValue(value, state)
 
     return TYPE_IDENTIFIERS[typ], identifier
   else
-    local vtype = TYPE_IDENTIFIERS[typ] or sanitizeString(typ)
-    local vrepr = sanitizeString(tostring(value))
+    local vtype = TYPE_IDENTIFIERS[typ] or Cereal.sanitizeString(typ)
+    local vrepr = Cereal.sanitizeString(tostring(value))
 
     return vtype, vrepr
   end
@@ -234,6 +230,10 @@ function Cereal.serializeScope(level, state)
   end
 
   return serialized, state
+end
+
+function Cereal.sanitizeString(str)
+    return str:gsub('[@`=,%$]', asciicode):gsub('[^\32-\126]', asciicode)
 end
 
 return Cereal
