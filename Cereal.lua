@@ -233,7 +233,7 @@ function Cereal.serializeScope(level, state)
 end
 
 function Cereal.sanitizeString(str)
-    return str:gsub('[@`=,%$]', asciicode):gsub('[^\32-\126]', asciicode)
+    return str:gsub('[@`=,;%$]', asciicode):gsub('[^\32-\126]', asciicode)
 end
 
 return Cereal

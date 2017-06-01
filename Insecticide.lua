@@ -47,6 +47,10 @@ local DEBUG_COMMANDS = {
   GETVARIABLES = 'GETVARIABLES'
 }
 
+local CLIENT_RESPONSES = {
+  INIT = 'OK;%s;%s\n'
+}
+
 -- ------------------------------------------------
 -- Local Variables
 -- ------------------------------------------------
@@ -100,7 +104,7 @@ local function hook(event, line)
     local path = debug.getinfo(1, "S").source
     path = Cereal.sanitizeString(path)
 
-    send(string.format('OK,%s,%s\n', config.id, path))
+    send(string.format(CLIENT_RESPONSES.INIT, config.id, path))
   end
 
   if event == DEBUG_EVENTS.CALL then
